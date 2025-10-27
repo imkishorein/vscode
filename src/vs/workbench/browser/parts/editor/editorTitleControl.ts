@@ -19,7 +19,6 @@ import { MultiRowEditorControl } from './multiRowEditorTabsControl.js';
 import { IReadonlyEditorGroupModel } from '../../../common/editor/editorGroupModel.js';
 import { NoEditorTabsControl } from './noEditorTabsControl.js';
 import { IEditorService, SIDE_GROUP } from '../../../services/editor/common/editorService.js';
-import { PreviewEditorInput } from '../../../contrib/preview/browser/previewEditor.js';
 import { URI } from '../../../../base/common/uri.js';
 
 export interface IEditorTitleControlDimensions {
@@ -169,13 +168,14 @@ export class EditorTitleControl extends Themable {
 
 			// Check if this is a preview file or preview editor
 			const isPreviewFile = activeEditor.resource.fsPath?.includes('.preview-samples/preview');
-			const isPreviewEditor = activeEditor instanceof PreviewEditorInput;
+			const isPreviewEditor = activeEditor.constructor.name === 'PreviewEditorInput';
 
 			if (target.value === 'preview' && isPreviewFile) {
 				// Switch from code to preview mode - replace current editor in same tab
 				const match = activeEditor.resource.fsPath.match(/preview(\d+)\.html/);
 				if (match) {
 					const previewNumber = match[1];
+					const { PreviewEditorInput } = await import('../../../contrib/preview/browser/previewEditor.js');
 					const previewInput = new PreviewEditorInput(`Preview ${previewNumber}`);
 					// Use replaceEditors to replace in the same tab
 					await this.editorService.replaceEditors([{
@@ -186,7 +186,8 @@ export class EditorTitleControl extends Themable {
 				}
 			} else if (target.value === 'code' && isPreviewEditor) {
 				// Switch from preview to code mode - replace current editor in same tab
-				const previewInput = activeEditor as PreviewEditorInput;
+				// eslint-disable-next-line @typescript-eslint/no-explicit-any
+				const previewInput = activeEditor as any;
 				const match = previewInput.previewTitle.match(/\d+/);
 				if (match) {
 					const previewNumber = match[0];
@@ -212,8 +213,8 @@ export class EditorTitleControl extends Themable {
 						previewNumber = match[1];
 					}
 				} else if (isPreviewEditor) {
-					// Currently viewing preview, extract preview number
-					const previewInput = activeEditor as PreviewEditorInput;
+					// eslint-disable-next-line @typescript-eslint/no-explicit-any
+					const previewInput = activeEditor as any;
 					const match = previewInput.previewTitle.match(/\d+/);
 					if (match) {
 						previewNumber = match[0];
@@ -222,6 +223,7 @@ export class EditorTitleControl extends Themable {
 				
 				if (previewNumber) {
 					const htmlFilePath = `/Users/kishore.v/Dev/vscode/.preview-samples/preview${previewNumber}.html`;
+					const { PreviewEditorInput } = await import('../../../contrib/preview/browser/previewEditor.js');
 					const previewInput = new PreviewEditorInput(`Preview ${previewNumber}`);
 					
 					// Open code in current group and preview in side group
@@ -259,7 +261,7 @@ export class EditorTitleControl extends Themable {
 		}
 
 		// Update dropdown based on current editor type
-		if (activeEditor instanceof PreviewEditorInput) {
+		if (activeEditor.constructor.name === 'PreviewEditorInput') {
 			this.modeSwitcherSelect.value = 'preview';
 		} else if (activeEditor.resource?.fsPath?.includes('.preview-samples/preview')) {
 			this.modeSwitcherSelect.value = 'code';

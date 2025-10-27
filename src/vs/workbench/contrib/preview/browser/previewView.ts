@@ -13,8 +13,7 @@ import { IConfigurationService } from '../../../../platform/configuration/common
 import { IOpenerService } from '../../../../platform/opener/common/opener.js';
 import { IThemeService } from '../../../../platform/theme/common/themeService.js';
 import { IHoverService } from '../../../../platform/hover/browser/hover.js';
-import { ViewPane } from '../../../browser/parts/views/viewPane.js';
-import { IViewPaneOptions } from '../../../browser/parts/views/viewPane.js';
+import { ViewPane, IViewPaneOptions } from '../../../browser/parts/views/viewPane.js';
 import { $, append } from '../../../../base/browser/dom.js';
 import { IEditorService } from '../../../services/editor/common/editorService.js';
 import { PreviewEditorInput } from './previewEditor.js';

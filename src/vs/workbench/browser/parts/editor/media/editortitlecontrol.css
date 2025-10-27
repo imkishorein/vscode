@@ -75,7 +75,7 @@
 	border: 1px solid var(--vscode-dropdown-border);
 	border-radius: 3px;
 	font-size: 13px;
-	font-family: var(--vscode-font-family);
+	font-family: inherit;
 	cursor: pointer;
 	outline: none;
 	height: 22px;
