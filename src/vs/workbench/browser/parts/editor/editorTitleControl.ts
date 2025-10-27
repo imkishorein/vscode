@@ -18,6 +18,9 @@ import { DisposableStore } from '../../../../base/common/lifecycle.js';
 import { MultiRowEditorControl } from './multiRowEditorTabsControl.js';
 import { IReadonlyEditorGroupModel } from '../../../common/editor/editorGroupModel.js';
 import { NoEditorTabsControl } from './noEditorTabsControl.js';
+import { IEditorService, SIDE_GROUP } from '../../../services/editor/common/editorService.js';
+import { PreviewEditorInput } from '../../../contrib/preview/browser/previewEditor.js';
+import { URI } from '../../../../base/common/uri.js';
 
 export interface IEditorTitleControlDimensions {
 
@@ -42,6 +45,10 @@ export class EditorTitleControl extends Themable {
 	private readonly breadcrumbsControlDisposables = this._register(new DisposableStore());
 	private get breadcrumbsControl() { return this.breadcrumbsControlFactory?.control; }
 
+	private modeSwitcherContainer: HTMLElement | undefined;
+	private modeSwitcherSelect: HTMLSelectElement | undefined;
+	private static readonly MODE_SWITCHER_HEIGHT = 30;
+
 	constructor(
 		private readonly parent: HTMLElement,
 		private readonly editorPartsView: IEditorPartsView,
@@ -49,12 +56,14 @@ export class EditorTitleControl extends Themable {
 		private readonly groupView: IEditorGroupView,
 		private readonly model: IReadonlyEditorGroupModel,
 		@IInstantiationService private instantiationService: IInstantiationService,
-		@IThemeService themeService: IThemeService
+		@IThemeService themeService: IThemeService,
+		@IEditorService private readonly editorService: IEditorService
 	) {
 		super(themeService);
 
 		this.editorTabsControl = this.createEditorTabsControl();
 		this.breadcrumbsControlFactory = this.createBreadcrumbsControl();
+		this.modeSwitcherContainer = this.createModeSwitcherBar();
 	}
 
 	private createEditorTabsControl(): IEditorTabsControl {
@@ -101,6 +110,163 @@ export class EditorTitleControl extends Themable {
 		return breadcrumbsControlFactory;
 	}
 
+	private createModeSwitcherBar(): HTMLElement | undefined {
+		if (this.groupsView.partOptions.showTabs === 'single') {
+			return undefined; // Only show for multiple tabs mode
+		}
+
+		// Mode switcher container
+		const modeSwitcherContainer = $('.preview-mode-switcher-bar');
+		this.parent.appendChild(modeSwitcherContainer);
+
+		// Create dropdown container
+		const dropdownContainer = $('.preview-mode-switcher-dropdown');
+		modeSwitcherContainer.appendChild(dropdownContainer);
+
+		// Create select element
+		const select = document.createElement('select');
+		select.className = 'mode-dropdown-select';
+
+		const codeOption = document.createElement('option');
+		codeOption.value = 'code';
+		codeOption.textContent = 'Code';
+
+		const previewOption = document.createElement('option');
+		previewOption.value = 'preview';
+		previewOption.textContent = 'Preview';
+
+		const splitOption = document.createElement('option');
+		splitOption.value = 'split';
+		splitOption.textContent = 'Code + Preview';
+
+		select.appendChild(codeOption);
+		select.appendChild(previewOption);
+		select.appendChild(splitOption);
+		select.value = 'code';
+
+		// Prevent focus loss when clicking the dropdown
+		select.addEventListener('mousedown', (e) => {
+			e.stopPropagation();
+		});
+
+		select.addEventListener('click', (e) => {
+			e.stopPropagation();
+		});
+
+		// Prevent editor from stealing focus
+		select.addEventListener('focus', (e) => {
+			e.stopPropagation();
+		});
+
+		// Handle mode switching
+		select.addEventListener('change', async (e) => {
+			const target = e.target as HTMLSelectElement;
+			const activeEditor = this.groupView.activeEditor;
+			
+			if (!activeEditor || !activeEditor.resource) {
+				return;
+			}
+
+			// Check if this is a preview file or preview editor
+			const isPreviewFile = activeEditor.resource.fsPath?.includes('.preview-samples/preview');
+			const isPreviewEditor = activeEditor instanceof PreviewEditorInput;
+
+			if (target.value === 'preview' && isPreviewFile) {
+				// Switch from code to preview mode - replace current editor in same tab
+				const match = activeEditor.resource.fsPath.match(/preview(\d+)\.html/);
+				if (match) {
+					const previewNumber = match[1];
+					const previewInput = new PreviewEditorInput(`Preview ${previewNumber}`);
+					// Use replaceEditors to replace in the same tab
+					await this.editorService.replaceEditors([{
+						editor: activeEditor,
+						replacement: previewInput,
+						forceReplaceDirty: false
+					}], this.groupView);
+				}
+			} else if (target.value === 'code' && isPreviewEditor) {
+				// Switch from preview to code mode - replace current editor in same tab
+				const previewInput = activeEditor as PreviewEditorInput;
+				const match = previewInput.previewTitle.match(/\d+/);
+				if (match) {
+					const previewNumber = match[0];
+					const htmlFilePath = `/Users/kishore.v/Dev/vscode/.preview-samples/preview${previewNumber}.html`;
+					// Use replaceEditors to replace in the same tab
+					await this.editorService.replaceEditors([{
+						editor: activeEditor,
+						replacement: {
+							resource: URI.file(htmlFilePath),
+							options: { pinned: true }
+						},
+						forceReplaceDirty: false
+					}], this.groupView);
+				}
+			} else if (target.value === 'split') {
+				// Open split view with code on left and preview on right
+				let previewNumber: string | undefined;
+				
+				if (isPreviewFile) {
+					// Currently viewing code, extract preview number
+					const match = activeEditor.resource.fsPath.match(/preview(\d+)\.html/);
+					if (match) {
+						previewNumber = match[1];
+					}
+				} else if (isPreviewEditor) {
+					// Currently viewing preview, extract preview number
+					const previewInput = activeEditor as PreviewEditorInput;
+					const match = previewInput.previewTitle.match(/\d+/);
+					if (match) {
+						previewNumber = match[0];
+					}
+				}
+				
+				if (previewNumber) {
+					const htmlFilePath = `/Users/kishore.v/Dev/vscode/.preview-samples/preview${previewNumber}.html`;
+					const previewInput = new PreviewEditorInput(`Preview ${previewNumber}`);
+					
+					// Open code in current group and preview in side group
+					await this.editorService.replaceEditors([{
+						editor: activeEditor,
+						replacement: {
+							resource: URI.file(htmlFilePath),
+							options: { pinned: true }
+						},
+						forceReplaceDirty: false
+					}], this.groupView);
+					
+					// Open preview in side group
+					await this.editorService.openEditor(previewInput, { pinned: true }, SIDE_GROUP);
+				}
+			}
+		});
+
+		dropdownContainer.appendChild(select);
+
+		// Store reference to select element
+		this.modeSwitcherSelect = select;
+
+		return modeSwitcherContainer;
+	}
+
+	private updateModeSwitcher(): void {
+		if (!this.modeSwitcherSelect) {
+			return;
+		}
+
+		const activeEditor = this.groupView.activeEditor;
+		if (!activeEditor) {
+			return;
+		}
+
+		// Update dropdown based on current editor type
+		if (activeEditor instanceof PreviewEditorInput) {
+			this.modeSwitcherSelect.value = 'preview';
+		} else if (activeEditor.resource?.fsPath?.includes('.preview-samples/preview')) {
+			this.modeSwitcherSelect.value = 'code';
+		}
+		// Note: split mode is set by user action, not auto-detected
+	}
+
 	openEditor(editor: EditorInput, options?: IInternalEditorOpenOptions): void {
 		const didChange = this.editorTabsControl.openEditor(editor, options);
 
@@ -119,6 +285,9 @@ export class EditorTitleControl extends Themable {
 		} else {
 			this.breadcrumbsControl?.revealLast();
 		}
+		
+		// Update mode switcher dropdown to reflect current editor
+		this.updateModeSwitcher();
 	}
 
 	beforeCloseEditor(editor: EditorInput): void {
@@ -189,6 +358,7 @@ export class EditorTitleControl extends Themable {
 			// Create new
 			this.editorTabsControl = this.createEditorTabsControl();
 			this.breadcrumbsControlFactory = this.createBreadcrumbsControl();
+			this.modeSwitcherContainer = this.createModeSwitcherBar();
 		}
 
 		// Forward into editor tabs control
@@ -209,18 +379,22 @@ export class EditorTitleControl extends Themable {
 			this.breadcrumbsControl.layout(breadcrumbsControlDimension);
 		}
 
+		// Layout mode switcher bar if visible
+		const modeSwitcherHeight = this.modeSwitcherContainer ? EditorTitleControl.MODE_SWITCHER_HEIGHT : 0;
+
 		return new Dimension(
 			dimensions.container.width,
-			tabsControlDimension.height + (breadcrumbsControlDimension ? breadcrumbsControlDimension.height : 0)
+			tabsControlDimension.height + (breadcrumbsControlDimension ? breadcrumbsControlDimension.height : 0) + modeSwitcherHeight
 		);
 	}
 
 	getHeight(): IEditorGroupTitleHeight {
 		const tabsControlHeight = this.editorTabsControl.getHeight();
 		const breadcrumbsControlHeight = this.breadcrumbsControl?.isHidden() === false ? BreadcrumbsControl.HEIGHT : 0;
+		const modeSwitcherHeight = this.modeSwitcherContainer ? EditorTitleControl.MODE_SWITCHER_HEIGHT : 0;
 
 		return {
-			total: tabsControlHeight + breadcrumbsControlHeight,
+			total: tabsControlHeight + breadcrumbsControlHeight + modeSwitcherHeight,
 			offset: tabsControlHeight
 		};
 	}

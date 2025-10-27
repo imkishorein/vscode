@@ -1,0 +1,118 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+.preview-editor {
+	width: 100%;
+	height: 100%;
+	display: flex;
+	flex-direction: column;
+	overflow: hidden;
+}
+
+.preview-editor-wrapper {
+	display: flex;
+	flex-direction: column;
+	width: 100%;
+	height: 100%;
+	position: relative;
+}
+
+.preview-editor-content {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	text-align: center;
+	gap: 20px;
+	flex: 1;
+	overflow: hidden;
+}
+
+.preview-iframe {
+	width: 100%;
+	height: 100%;
+	border: none;
+	background-color: white;
+}
+
+.preview-editor-message {
+	font-size: 100px;
+	font-weight: 300;
+	color: var(--vscode-foreground);
+	line-height: 1;
+}
+
+.preview-editor-subtitle {
+	font-size: 24px;
+	color: var(--vscode-descriptionForeground);
+	opacity: 0.8;
+}
+
+/* Title area with controls layout */
+.preview-title-area-modified {
+	display: flex !important;
+	align-items: center;
+	justify-content: space-between;
+	width: 100%;
+	flex-wrap: nowrap;
+}
+
+.preview-title-area-modified > * {
+	display: flex;
+	align-items: center;
+}
+
+.preview-title-area-modified .title-label {
+	flex: 1;
+	min-width: 0;
+	display: flex;
+	align-items: center;
+}
+
+.preview-title-controls {
+	display: flex;
+	align-items: center;
+	padding: 0 12px;
+	flex-shrink: 0;
+	gap: 8px;
+	height: 100%;
+}
+
+.preview-title-controls .mode-dropdown-select {
+	padding: 4px 8px;
+	min-height: 24px;
+	background-color: var(--vscode-dropdown-background);
+	color: var(--vscode-dropdown-foreground);
+	border: 1px solid var(--vscode-dropdown-border);
+	border-radius: 3px;
+	font-size: 13px;
+	font-family: var(--vscode-font-family);
+	line-height: 1.5;
+	cursor: pointer;
+	outline: none;
+	appearance: none;
+	-webkit-appearance: none;
+	-moz-appearance: none;
+	background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23888888' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+	background-repeat: no-repeat;
+	background-position: right 6px center;
+	background-size: 14px;
+	padding-right: 26px;
+	z-index: 10;
+	box-sizing: border-box;
+}
+
+.preview-title-controls .mode-dropdown-select:hover {
+	background-color: var(--vscode-dropdown-background);
+	border-color: var(--vscode-focusBorder);
+}
+
+.preview-title-controls .mode-dropdown-select:focus {
+	outline: 1px solid var(--vscode-focusBorder);
+	outline-offset: -1px;
+	border-color: var(--vscode-focusBorder);
+}
+
+

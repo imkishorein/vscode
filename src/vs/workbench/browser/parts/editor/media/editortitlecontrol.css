@@ -45,3 +45,57 @@
 .monaco-workbench .part.editor > .content .editor-group-container > .title .breadcrumbs-below-tabs .breadcrumbs-control .monaco-breadcrumb-item:last-child .codicon:last-child {
 	display: none; /* hides chevrons when last item */
 }
+
+/* Mode Switcher Bar (below breadcrumbs) */
+
+.monaco-workbench .part.editor > .content .editor-group-container > .title .preview-mode-switcher-bar {
+	display: flex;
+	align-items: center;
+	justify-content: flex-end;
+	padding: 4px 12px;
+	height: 30px;
+	background-color: var(--vscode-editor-background);
+	border-bottom: 1px solid var(--vscode-panel-border);
+	flex-shrink: 0;
+	box-sizing: border-box;
+	position: relative;
+	z-index: 10;
+	pointer-events: all;
+}
+
+.monaco-workbench .part.editor > .content .editor-group-container > .title .preview-mode-switcher-dropdown {
+	display: flex;
+	align-items: center;
+}
+
+.monaco-workbench .part.editor > .content .editor-group-container > .title .preview-mode-switcher-bar .mode-dropdown-select {
+	padding: 4px 8px;
+	background-color: var(--vscode-dropdown-background);
+	color: var(--vscode-dropdown-foreground);
+	border: 1px solid var(--vscode-dropdown-border);
+	border-radius: 3px;
+	font-size: 13px;
+	font-family: var(--vscode-font-family);
+	cursor: pointer;
+	outline: none;
+	height: 22px;
+	position: relative;
+	z-index: 11;
+	pointer-events: all;
+}
+
+.monaco-workbench .part.editor > .content .editor-group-container > .title .preview-mode-switcher-bar .mode-dropdown-select:hover {
+	background-color: var(--vscode-dropdown-background);
+	border-color: var(--vscode-focusBorder);
+}
+
+.monaco-workbench .part.editor > .content .editor-group-container > .title .preview-mode-switcher-bar .mode-dropdown-select:focus {
+	outline: 1px solid var(--vscode-focusBorder);
+	outline-offset: -1px;
+}
+
+/* Ensure dropdown options stay visible */
+.monaco-workbench .part.editor > .content .editor-group-container > .title .preview-mode-switcher-bar .mode-dropdown-select option {
+	background-color: var(--vscode-dropdown-background);
+	color: var(--vscode-dropdown-foreground);
+}

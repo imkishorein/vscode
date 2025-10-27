@@ -208,3 +208,17 @@
 	left: auto;
 	right: 0;
 }
+
+/* Preview view green dot indicator */
+.monaco-workbench .activitybar > .content :not(.monaco-menu) > .monaco-action-bar .action-item[data-id="workbench.view.preview"]::after {
+	content: '';
+	position: absolute;
+	bottom: 8px;
+	right: 8px;
+	width: 10px;
+	height: 10px;
+	border-radius: 50%;
+	background-color: #4ec9b0;
+	box-shadow: 0 0 4px rgba(78, 201, 176, 0.8);
+	z-index: 10;
+}

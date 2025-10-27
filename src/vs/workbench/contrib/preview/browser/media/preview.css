@@ -1,0 +1,158 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+.preview-sections-container {
+	flex: 1;
+	width: 100%;
+	overflow-y: auto;
+	display: flex;
+	flex-direction: column;
+}
+
+.preview-section {
+	border-bottom: 1px solid var(--vscode-panel-border);
+}
+
+.preview-section-header {
+	display: flex;
+	align-items: center;
+	padding: 8px 12px;
+	background-color: var(--vscode-sideBar-background);
+	color: var(--vscode-sideBar-foreground);
+	cursor: pointer;
+	user-select: none;
+	font-weight: 500;
+	font-size: 12px;
+	text-transform: uppercase;
+	letter-spacing: 0.5px;
+	transition: background-color 0.2s ease;
+}
+
+.preview-section-header:hover {
+	background-color: var(--vscode-list-hoverBackground);
+}
+
+.preview-section-header:focus {
+	outline: 1px solid var(--vscode-focusBorder);
+	outline-offset: -1px;
+}
+
+.preview-section-chevron {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 20px;
+	height: 20px;
+	margin-right: 4px;
+	font-size: 10px;
+	flex-shrink: 0;
+	transition: transform 0.2s ease;
+}
+
+.preview-section-chevron.expanded {
+	transform: rotate(0deg);
+}
+
+.preview-section-chevron.collapsed {
+	transform: rotate(-90deg);
+}
+
+.preview-section-label {
+	flex: 1;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.preview-section-content {
+	display: block;
+	background-color: var(--vscode-sideBar-background);
+}
+
+.preview-list-container {
+	display: flex;
+	flex-direction: column;
+}
+
+.preview-item {
+	display: flex;
+	align-items: center;
+	padding: 6px 12px 6px 32px;
+	height: 22px;
+	line-height: 22px;
+	cursor: pointer;
+	transition: background-color 0.1s ease;
+	font-size: 13px;
+}
+
+.preview-item:hover {
+	background-color: var(--vscode-list-hoverBackground);
+}
+
+.preview-item:active {
+	background-color: var(--vscode-list-activeSelectionBackground);
+}
+
+.preview-item-label {
+	flex: 1;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	color: var(--vscode-sideBar-foreground);
+}
+
+.preview-controls {
+	display: flex;
+	align-items: center;
+	justify-content: flex-end;
+	padding: 8px 12px;
+	background-color: var(--vscode-editor-background);
+	border-bottom: 1px solid var(--vscode-panel-border);
+	flex-shrink: 0;
+	gap: 8px;
+}
+
+.preview-controls-dropdown {
+	display: flex;
+	align-items: center;
+	height: 100%;
+}
+
+.mode-dropdown-select {
+	padding: 4px 8px;
+	min-height: 24px;
+	background-color: var(--vscode-dropdown-background);
+	color: var(--vscode-dropdown-foreground);
+	border: 1px solid var(--vscode-dropdown-border);
+	border-radius: 3px;
+	font-size: 13px;
+	font-family: var(--vscode-font-family);
+	line-height: 1.5;
+	cursor: pointer;
+	outline: none;
+	appearance: none;
+	-webkit-appearance: none;
+	-moz-appearance: none;
+	background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23888888' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+	background-repeat: no-repeat;
+	background-position: right 6px center;
+	background-size: 14px;
+	padding-right: 26px;
+	z-index: 10;
+	box-sizing: border-box;
+}
+
+.mode-dropdown-select:hover {
+	background-color: var(--vscode-dropdown-background);
+	border-color: var(--vscode-focusBorder);
+}
+
+.mode-dropdown-select:focus {
+	outline: 1px solid var(--vscode-focusBorder);
+	outline-offset: -1px;
+	border-color: var(--vscode-focusBorder);
+}
+
+
