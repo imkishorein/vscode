@@ -5,7 +5,7 @@
 
 /**
  * PreviewAuxiliaryPanel - Renders preview in the auxiliary sidebar (right side)
- * 
+ *
  * Naming Convention:
  * - Component: PreviewAuxiliaryPanel
  * - Class: AuxiliaryPreviewView
