@@ -20,7 +20,8 @@ import { EditorResourceAccessor, SideBySideEditor } from '../../../../common/edi
 import { isEqual, joinPath } from '../../../../../base/common/resources.js';
 import { CancellationTokenSource } from '../../../../../base/common/cancellation.js';
 import { IHostService } from '../../../../services/host/browser/host.js';
-import { IChatWidgetService, showChatView } from '../chat.js';
+import { IChatWidgetService } from '../chat.js';
+import { showChatView } from '../chatViewHelpers.js';
 import { IViewsService } from '../../../../services/views/common/viewsService.js';
 import { Button, ButtonWithDropdown } from '../../../../../base/browser/ui/button/button.js';
 import { defaultButtonStyles } from '../../../../../platform/theme/browser/defaultStyles.js';

@@ -30,7 +30,8 @@ import { ChatMode } from '../common/chatModes.js';
 import { IParsedChatRequest } from '../common/chatParserTypes.js';
 import { IChatProgress, IChatService } from '../common/chatService.js';
 import { ChatAgentLocation } from '../common/constants.js';
-import { IQuickChatOpenOptions, IQuickChatService, showChatView } from './chat.js';
+import { IQuickChatOpenOptions, IQuickChatService } from './chat.js';
+import { showChatView } from './chatViewHelpers.js';
 import { ChatWidget } from './chatWidget.js';
 
 export class QuickChatService extends Disposable implements IQuickChatService {

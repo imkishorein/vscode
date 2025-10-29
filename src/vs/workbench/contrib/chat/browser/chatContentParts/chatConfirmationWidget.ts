@@ -24,7 +24,7 @@ import { FocusMode } from '../../../../../platform/native/common/native.js';
 import { defaultButtonStyles } from '../../../../../platform/theme/browser/defaultStyles.js';
 import { IHostService } from '../../../../services/host/browser/host.js';
 import { IViewsService } from '../../../../services/views/common/viewsService.js';
-import { showChatView } from '../chat.js';
+import { showChatView } from '../chatViewHelpers.js';
 import './media/chatConfirmationWidget.css';
 import { IWorkbenchLayoutService } from '../../../../services/layout/browser/layoutService.js';
 

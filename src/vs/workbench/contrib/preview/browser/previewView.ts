@@ -3,6 +3,25 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+/**
+ * PreviewPrimarySidebarView - FULLY IMPLEMENTED ✅
+ * 
+ * Naming Convention:
+ * - Component: PreviewPrimarySidebarView (dedicated icon on primary sidebar)
+ * - Class: PreviewView
+ * - View ID: workbench.view.preview.main
+ * - Container ID: workbench.view.preview
+ * - Trigger: Click Play icon in activity bar (primary sidebar)
+ * - Location: Primary sidebar (left side), order 5
+ * - Behavior: Shows list of available previews organized in collapsible sections
+ * - Toggle Command: workbench.action.togglePreviewPrimarySidebar
+ * 
+ * Implementation:
+ * - Registered in preview.contribution.ts as primary sidebar view container
+ * - Activity bar icon automatically created by ViewContainerLocation.Sidebar
+ * - Toggle command available in previewPrimarySidebarToggle.ts
+ */
+
 import './media/preview.css';
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
 import { IViewDescriptorService } from '../../../common/views.js';
@@ -149,7 +168,7 @@ export class PreviewView extends ViewPane {
 
 	private openPreview(previewId: string): void {
 		const previewInput = new PreviewEditorInput(`Preview ${previewId}`);
-		this.editorService.openEditor(previewInput);
+		this.editorService.openEditor(previewInput, { pinned: true });
 	}
 }
 

@@ -22,7 +22,8 @@ import { IInstantiationService, ServicesAccessor } from '../../../../platform/in
 import { IWorkbenchContribution } from '../../../common/contributions.js';
 import { IWorkbenchLayoutService } from '../../../services/layout/browser/layoutService.js';
 import { IViewsService } from '../../../services/views/common/viewsService.js';
-import { IChatWidget, showChatView } from '../../chat/browser/chat.js';
+import { IChatWidget } from '../../chat/browser/chat.js';
+import { showChatView } from '../../chat/browser/chatViewHelpers.js';
 import { IChatContextPickerItem, IChatContextPickerPickItem, IChatContextPickService, picksWithPromiseFn } from '../../chat/browser/chatContextPickService.js';
 import { ChatContextKeys } from '../../chat/common/chatContextKeys.js';
 import { ISCMHistoryItemChangeVariableEntry, ISCMHistoryItemVariableEntry } from '../../chat/common/chatVariableEntries.js';

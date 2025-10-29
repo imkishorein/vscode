@@ -13,7 +13,8 @@ import { IInstantiationService } from '../../../../../platform/instantiation/com
 import { registerWorkbenchContribution2, WorkbenchPhase, type IWorkbenchContribution } from '../../../../common/contributions.js';
 import { IWorkbenchLayoutService } from '../../../../services/layout/browser/layoutService.js';
 import { IViewsService } from '../../../../services/views/common/viewsService.js';
-import { IChatWidgetService, showChatView } from '../../../chat/browser/chat.js';
+import { IChatWidgetService } from '../../../chat/browser/chat.js';
+import { showChatView } from '../../../chat/browser/chatViewHelpers.js';
 import { ChatContextKeys } from '../../../chat/common/chatContextKeys.js';
 import { ILanguageModelToolsService, ToolDataSource } from '../../../chat/common/languageModelToolsService.js';
 import { registerActiveInstanceAction, sharedWhenClause } from '../../../terminal/browser/terminalActions.js';

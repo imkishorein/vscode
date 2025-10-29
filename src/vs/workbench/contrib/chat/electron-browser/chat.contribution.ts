@@ -26,7 +26,7 @@ import { IWorkbenchLayoutService } from '../../../services/layout/browser/layout
 import { ILifecycleService, ShutdownReason } from '../../../services/lifecycle/common/lifecycle.js';
 import { IViewsService } from '../../../services/views/common/viewsService.js';
 import { ACTION_ID_NEW_CHAT, CHAT_OPEN_ACTION_ID, IChatViewOpenOptions } from '../browser/actions/chatActions.js';
-import { showChatView } from '../browser/chat.js';
+import { showChatView } from '../browser/chatViewHelpers.js';
 import { ChatContextKeys } from '../common/chatContextKeys.js';
 import { IChatService } from '../common/chatService.js';
 import { ChatModeKind } from '../common/constants.js';

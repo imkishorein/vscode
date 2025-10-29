@@ -15,7 +15,6 @@ import { MenuId } from '../../../../platform/actions/common/actions.js';
 import { IContextKeyService } from '../../../../platform/contextkey/common/contextkey.js';
 import { createDecorator } from '../../../../platform/instantiation/common/instantiation.js';
 import { IEditorGroupsService } from '../../../services/editor/common/editorGroupsService.js';
-import { IWorkbenchLayoutService } from '../../../services/layout/browser/layoutService.js';
 import { IViewsService } from '../../../services/views/common/viewsService.js';
 import { IChatAgentAttachmentCapabilities, IChatAgentCommand, IChatAgentData } from '../common/chatAgents.js';
 import { IChatResponseModel } from '../common/chatModel.js';
@@ -28,7 +27,6 @@ import { ChatAgentLocation, ChatModeKind } from '../common/constants.js';
 import { ChatAttachmentModel } from './chatAttachmentModel.js';
 import { ChatEditorInput } from './chatEditorInput.js';
 import { ChatInputPart } from './chatInputPart.js';
-import { ChatViewPane } from './chatViewPane.js';
 import { ChatWidget, IChatViewState, IChatWidgetContrib } from './chatWidget.js';
 import { ICodeBlockActionContext } from './codeBlockPart.js';
 
@@ -64,16 +62,6 @@ export async function showChatWidgetInViewOrEditor(accessor: ServicesAccessor, w
 			}
 		}
 	}
-}
-
-export async function showChatView(viewsService: IViewsService, layoutService: IWorkbenchLayoutService): Promise<IChatWidget | undefined> {
-
-	// Ensure main window is in front
-	if (layoutService.activeContainer !== layoutService.mainContainer) {
-		layoutService.mainContainer.focus();
-	}
-
-	return (await viewsService.openView<ChatViewPane>(ChatViewId))?.widget;
 }
 
 export const IQuickChatService = createDecorator<IQuickChatService>('quickChatService');

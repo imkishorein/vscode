@@ -12,6 +12,7 @@ import { IConfigurationService } from '../../../../platform/configuration/common
 import { ExplorerView } from './views/explorerView.js';
 import { EmptyView } from './views/emptyView.js';
 import { OpenEditorsView } from './views/openEditorsView.js';
+import { PreviewExplorerView } from './views/previewExplorerView.js';
 import { IStorageService } from '../../../../platform/storage/common/storage.js';
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
 import { IExtensionService } from '../../../services/extensions/common/extensions.js';
@@ -78,6 +79,9 @@ export class ExplorerViewletViewsContribution extends Disposable implements IWor
 		const emptyViewDescriptor = this.createEmptyViewDescriptor();
 		const registeredEmptyViewDescriptor = viewDescriptors.find(v => v.id === emptyViewDescriptor.id);
 
+		const previewViewDescriptor = this.createPreviewViewDescriptor();
+		const registeredPreviewViewDescriptor = viewDescriptors.find(v => v.id === previewViewDescriptor.id);
+
 		if (this.workspaceContextService.getWorkbenchState() === WorkbenchState.EMPTY || this.workspaceContextService.getWorkspace().folders.length === 0) {
 			if (registeredExplorerViewDescriptor) {
 				viewDescriptorsToDeregister.push(registeredExplorerViewDescriptor);
@@ -92,6 +96,11 @@ export class ExplorerViewletViewsContribution extends Disposable implements IWor
 			if (!registeredExplorerViewDescriptor) {
 				viewDescriptorsToRegister.push(explorerViewDescriptor);
 			}
+		}
+
+		// Register preview view if not already registered
+		if (!registeredPreviewViewDescriptor) {
+			viewDescriptorsToRegister.push(previewViewDescriptor);
 		}
 
 		if (viewDescriptorsToDeregister.length) {
@@ -148,6 +157,19 @@ export class ExplorerViewletViewsContribution extends Disposable implements IWor
 			focusCommand: {
 				id: 'workbench.explorer.fileView.focus'
 			}
+		};
+	}
+
+	private createPreviewViewDescriptor(): IViewDescriptor {
+		return {
+			id: PreviewExplorerView.ID,
+			name: PreviewExplorerView.NAME,
+			containerIcon: explorerViewIcon,
+			ctorDescriptor: new SyncDescriptor(PreviewExplorerView),
+			order: 1.5,
+			canToggleVisibility: true,
+			canMoveView: true,
+			collapsed: false
 		};
 	}
 }

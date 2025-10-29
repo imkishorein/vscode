@@ -16,7 +16,7 @@ import { INotebookCellActionContext, NotebookCellAction, findTargetCellEditor } 
 import { CodeCellViewModel } from '../../viewModel/codeCellViewModel.js';
 import { NOTEBOOK_CELL_EDITOR_FOCUSED, NOTEBOOK_CELL_FOCUSED, NOTEBOOK_CELL_HAS_ERROR_DIAGNOSTICS } from '../../../common/notebookContextKeys.js';
 import { InlineChatController } from '../../../../inlineChat/browser/inlineChatController.js';
-import { showChatView } from '../../../../chat/browser/chat.js';
+import { showChatView } from '../../../../chat/browser/chatViewHelpers.js';
 import { IViewsService } from '../../../../../services/views/common/viewsService.js';
 import { IWorkbenchLayoutService } from '../../../../../services/layout/browser/layoutService.js';
 

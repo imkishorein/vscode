@@ -17,7 +17,8 @@ import { IContextKey, IContextKeyService } from '../../../../../platform/context
 import { IInstantiationService } from '../../../../../platform/instantiation/common/instantiation.js';
 import { IStorageService, StorageScope, StorageTarget } from '../../../../../platform/storage/common/storage.js';
 import { IViewsService } from '../../../../services/views/common/viewsService.js';
-import { IChatAcceptInputOptions, showChatView } from '../../../chat/browser/chat.js';
+import { IChatAcceptInputOptions } from '../../../chat/browser/chat.js';
+import { showChatView } from '../../../chat/browser/chatViewHelpers.js';
 import type { IChatViewState } from '../../../chat/browser/chatWidget.js';
 import { IChatAgentService } from '../../../chat/common/chatAgents.js';
 import { ChatModel, IChatResponseModel, isCellTextEditOperation } from '../../../chat/common/chatModel.js';

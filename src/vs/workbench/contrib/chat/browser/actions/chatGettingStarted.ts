@@ -13,7 +13,7 @@ import { IStorageService, StorageScope, StorageTarget } from '../../../../../pla
 import { IDefaultChatAgent } from '../../../../../base/common/product.js';
 import { IWorkbenchLayoutService } from '../../../../services/layout/browser/layoutService.js';
 import { IViewsService } from '../../../../services/views/common/viewsService.js';
-import { showChatView } from '../chat.js';
+import { showChatView } from '../chatViewHelpers.js';
 
 export class ChatGettingStartedContribution extends Disposable implements IWorkbenchContribution {
 	static readonly ID = 'workbench.contrib.chatGettingStarted';

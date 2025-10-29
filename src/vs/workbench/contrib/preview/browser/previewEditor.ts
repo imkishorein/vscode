@@ -3,6 +3,17 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+/**
+ * PreviewEditorPanel - Renders preview in the main editor panel
+ * 
+ * Naming Convention:
+ * - Component: PreviewEditorPanel (conceptual name for editor panel rendering)
+ * - Classes: PreviewEditor, PreviewEditorInput
+ * - Trigger: Click from PreviewPrimarySidebarView, PreviewExplorerView, or "Preview" mode in ViewModeDropdownControl
+ * - Location: Main editor area
+ * - Mode: 'preview-only'
+ */
+
 import './media/previewEditor.css';
 import { Dimension, getWindow } from '../../../../base/browser/dom.js';
 import { CancellationToken } from '../../../../base/common/cancellation.js';
@@ -111,10 +122,15 @@ export class PreviewEditor extends EditorPane {
 		this.container = parent;
 		this.container.classList.add('preview-editor');
 		
+		// COMMENTED OUT: Dropdown UI initialization
 		// Add controls to title area after a short delay to ensure DOM is ready
-		setTimeout(() => this.createTitleAreaControls(), 100);
+		// setTimeout(() => this.createTitleAreaControls(), 100);
 	}
 
+	// COMMENTED OUT: Dropdown UI creation method
+	// This method creates a dropdown control in the editor title area
+	// Keeping for future use - can be uncommented if needed
+	/*
 	private createTitleAreaControls(): void {
 		// Find the parent editor group which contains the title area
 		const editorGroup = this.container?.closest('.editor-group-container') as HTMLElement;
@@ -136,7 +152,7 @@ export class PreviewEditor extends EditorPane {
 		
 		// Create dropdown
 		const dropdown = document.createElement('select');
-		dropdown.className = 'mode-dropdown-select';
+		dropdown.className = 'view-mode-dropdown-select';
 		dropdown.innerHTML = `
 			<option value="code">Code</option>
 			<option value="preview" selected>Preview</option>
@@ -145,6 +161,7 @@ export class PreviewEditor extends EditorPane {
 		controlsContainer.appendChild(dropdown);
 		titleArea.appendChild(controlsContainer);
 	}
+	*/
 
 	private async render(title: string): Promise<void> {
 		if (!this.container) {
@@ -158,7 +175,7 @@ export class PreviewEditor extends EditorPane {
 			this.webviewDisposable = undefined;
 		}
 
-		// Clear existing content
+		// Clear existing content BEFORE creating new webview
 		while (this.container.firstChild) {
 			this.container.removeChild(this.container.firstChild);
 		}
@@ -170,13 +187,42 @@ export class PreviewEditor extends EditorPane {
 			try {
 				const model = await this.textFileService.files.resolve(htmlPath);
 				const htmlContent = this.getModelContent(model);
-				this.updateWebviewContent(htmlContent, title);
+				
+				// Create webview with proper container state
+				this.webview = this.webviewService.createWebviewElement({
+					title: title,
+					options: {},
+					contentOptions: {
+						allowScripts: true,
+						allowForms: true,
+						localResourceRoots: []
+					},
+					extension: undefined
+				});
+				this.webviewDisposable = this._register(this.webview);
+				this.webview.mountTo(this.container, getWindow(this.container));
+				this.webview.setHtml(htmlContent);
+				
 				this.registerModelListener(model, title, htmlPath);
 			} catch (error) {
 				try {
 					const fileContent = await this.fileService.readFile(htmlPath);
 					const htmlContent = fileContent.value.toString();
-					this.updateWebviewContent(htmlContent, title);
+					
+					// Create webview with proper container state
+					this.webview = this.webviewService.createWebviewElement({
+						title: title,
+						options: {},
+						contentOptions: {
+							allowScripts: true,
+							allowForms: true,
+							localResourceRoots: []
+						},
+						extension: undefined
+					});
+					this.webviewDisposable = this._register(this.webview);
+					this.webview.mountTo(this.container, getWindow(this.container));
+					this.webview.setHtml(htmlContent);
 				} catch (readError) {
 					// Show error message if file cannot be read
 					const errorDiv = document.createElement('div');
@@ -210,23 +256,8 @@ export class PreviewEditor extends EditorPane {
 	}
 
 	private updateWebviewContent(htmlContent: string, title: string): void {
-		if (!this.container) {
-			return;
-		}
-		// Create webview only if it doesn't exist
 		if (!this.webview) {
-			this.webview = this.webviewService.createWebviewElement({
-				title: title,
-				options: {},
-				contentOptions: {
-					allowScripts: true,
-					allowForms: true,
-					localResourceRoots: []
-				},
-				extension: undefined
-			});
-			this.webviewDisposable = this._register(this.webview);
-			this.webview.mountTo(this.container, getWindow(this.container));
+			return;
 		}
 		// Update HTML content without recreating webview
 		this.webview.setHtml(htmlContent);

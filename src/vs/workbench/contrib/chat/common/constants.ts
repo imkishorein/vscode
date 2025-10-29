@@ -5,6 +5,8 @@
 
 import { Schemas } from '../../../../base/common/network.js';
 
+export const CHAT_SIDEBAR_PANEL_ID = 'workbench.panel.chat';
+
 export enum ChatConfiguration {
 	AgentEnabled = 'chat.agent.enabled',
 	Edits2Enabled = 'chat.edits2.enabled',

@@ -3,14 +3,22 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+/**
+ * Preview Context Menu Action
+ * 
+ * Naming Convention:
+ * - Command ID: workbench.action.previewFile
+ * - Trigger: Right-click on HTML file in File Explorer
+ * - Shortcut: Cmd+Shift+V (Ctrl+Shift+V on Windows/Linux)
+ * - Behavior: Opens preview in editor panel based on current ViewModeDropdownControl mode
+ */
+
 import { localize } from '../../../../nls.js';
 import { MenuId, MenuRegistry } from '../../../../platform/actions/common/actions.js';
 import { ContextKeyExpr } from '../../../../platform/contextkey/common/contextkey.js';
 import { ResourceContextKey } from '../../../common/contextkeys.js';
 import { Codicon } from '../../../../base/common/codicons.js';
 import { ServicesAccessor } from '../../../../platform/instantiation/common/instantiation.js';
-import { IEditorService } from '../../../services/editor/common/editorService.js';
-import { PreviewEditorInput } from './previewEditor.js';
 import { ICommandHandler } from '../../../../platform/commands/common/commands.js';
 import { KeyMod, KeyCode } from '../../../../base/common/keyCodes.js';
 import { KeybindingsRegistry, KeybindingWeight } from '../../../../platform/keybinding/common/keybindingsRegistry.js';
@@ -18,6 +26,8 @@ import { FilesExplorerFocusCondition } from '../../files/common/files.js';
 import { getMultiSelectedResources, IExplorerService } from '../../files/browser/files.js';
 import { IListService } from '../../../../platform/list/browser/listService.js';
 import { IEditorGroupsService } from '../../../services/editor/common/editorGroupsService.js';
+import { IEditorService } from '../../../services/editor/common/editorService.js';
+import { PreviewEditorInput } from './previewEditor.js';
 
 // Supported preview file extensions
 const PREVIEW_SUPPORTED_EXTENSIONS = ['.html', '.htm'];
@@ -31,8 +41,8 @@ const PREVIEW_FILE_COMMAND_ID = 'workbench.action.previewFile';
 
 // Register the command
 const previewFileCommandHandler: ICommandHandler = async (accessor: ServicesAccessor, resource: unknown) => {
-	const editorService = accessor.get(IEditorService);
 	const listService = accessor.get(IListService);
+	const editorService = accessor.get(IEditorService);
 	const editorGroupsService = accessor.get(IEditorGroupsService);
 	const explorerService = accessor.get(IExplorerService);
 	
@@ -46,7 +56,7 @@ const previewFileCommandHandler: ICommandHandler = async (accessor: ServicesAcce
 	// Use the first selected resource
 	const selectedResource = resources[0];
 	
-	// Extract file name without extension to determine preview number
+	// Extract file name to determine preview number
 	const fileName = selectedResource.path.split('/').pop() || '';
 	const match = fileName.match(/preview(\d+)/);
 	
@@ -54,7 +64,7 @@ const previewFileCommandHandler: ICommandHandler = async (accessor: ServicesAcce
 		const previewNumber = match[1];
 		const previewTitle = `Preview ${previewNumber}`;
 		
-		// Open the preview editor
+		// Open the preview as an editor
 		await editorService.openEditor(
 			new PreviewEditorInput(previewTitle),
 			{ pinned: true }
@@ -82,3 +92,4 @@ MenuRegistry.appendMenuItem(MenuId.ExplorerContext, {
 	},
 	when: isPreviewSupportedFile
 });
+

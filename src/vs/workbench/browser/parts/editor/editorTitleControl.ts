@@ -18,8 +18,12 @@ import { DisposableStore } from '../../../../base/common/lifecycle.js';
 import { MultiRowEditorControl } from './multiRowEditorTabsControl.js';
 import { IReadonlyEditorGroupModel } from '../../../common/editor/editorGroupModel.js';
 import { NoEditorTabsControl } from './noEditorTabsControl.js';
-import { IEditorService, SIDE_GROUP } from '../../../services/editor/common/editorService.js';
+import { IEditorService } from '../../../services/editor/common/editorService.js';
 import { URI } from '../../../../base/common/uri.js';
+import { IViewsService } from '../../../services/views/common/viewsService.js';
+import { IWorkbenchLayoutService, Parts } from '../../../services/layout/browser/layoutService.js';
+import { IPaneCompositePartService } from '../../../services/panecomposite/browser/panecomposite.js';
+import { ViewContainerLocation } from '../../../common/views.js';
 
 export interface IEditorTitleControlDimensions {
 
@@ -56,7 +60,10 @@ export class EditorTitleControl extends Themable {
 		private readonly model: IReadonlyEditorGroupModel,
 		@IInstantiationService private instantiationService: IInstantiationService,
 		@IThemeService themeService: IThemeService,
-		@IEditorService private readonly editorService: IEditorService
+		@IEditorService private readonly editorService: IEditorService,
+		@IViewsService private readonly viewsService: IViewsService,
+		@IWorkbenchLayoutService private readonly layoutService: IWorkbenchLayoutService,
+		@IPaneCompositePartService private readonly paneCompositeService: IPaneCompositePartService
 	) {
 		super(themeService);
 
@@ -161,7 +168,7 @@ export class EditorTitleControl extends Themable {
 		select.addEventListener('change', async (e) => {
 			const target = e.target as HTMLSelectElement;
 			const activeEditor = this.groupView.activeEditor;
-			
+
 			if (!activeEditor || !activeEditor.resource) {
 				return;
 			}
@@ -169,6 +176,11 @@ export class EditorTitleControl extends Themable {
 			// Check if this is a preview file or preview editor
 			const isPreviewFile = activeEditor.resource.fsPath?.includes('.preview-samples/preview');
 			const isPreviewEditor = activeEditor.constructor.name === 'PreviewEditorInput';
+
+			// Always close auxiliary preview when switching to code or preview (non-split) modes
+			if (target.value === 'code' || target.value === 'preview') {
+				await this.closeAuxiliaryPreview();
+			}
 
 			if (target.value === 'preview' && isPreviewFile) {
 				// Switch from code to preview mode - replace current editor in same tab
@@ -203,9 +215,9 @@ export class EditorTitleControl extends Themable {
 					}], this.groupView);
 				}
 			} else if (target.value === 'split') {
-				// Open split view with code on left and preview on right
+				// Open split view with code in editor and preview in auxiliary bar
 				let previewNumber: string | undefined;
-				
+
 				if (isPreviewFile) {
 					// Currently viewing code, extract preview number
 					const match = activeEditor.resource.fsPath.match(/preview(\d+)\.html/);
@@ -220,24 +232,57 @@ export class EditorTitleControl extends Themable {
 						previewNumber = match[0];
 					}
 				}
-				
+
 				if (previewNumber) {
 					const htmlFilePath = `/Users/kishore.v/Dev/vscode/.preview-samples/preview${previewNumber}.html`;
-					const { PreviewEditorInput } = await import('../../../contrib/preview/browser/previewEditor.js');
-					const previewInput = new PreviewEditorInput(`Preview ${previewNumber}`);
-					
-					// Open code in current group and preview in side group
-					await this.editorService.replaceEditors([{
-						editor: activeEditor,
-						replacement: {
-							resource: URI.file(htmlFilePath),
-							options: { pinned: true }
-						},
-						forceReplaceDirty: false
-					}], this.groupView);
-					
-					// Open preview in side group
-					await this.editorService.openEditor(previewInput, { pinned: true }, SIDE_GROUP);
+					const { AUXILIARY_PREVIEW_CONTAINER_ID, AUXILIARY_PREVIEW_VIEW_ID } = await import('../../../contrib/preview/browser/previewConstants.js');
+
+					// Open code in current editor if not already
+					if (isPreviewEditor) {
+						await this.editorService.replaceEditors([{
+							editor: activeEditor,
+							replacement: {
+								resource: URI.file(htmlFilePath),
+								options: { pinned: true }
+							},
+							forceReplaceDirty: false
+						}], this.groupView);
+					}
+
+					// Close any other containers in auxiliary bar to ensure exclusive display
+					await this.closeOtherAuxiliaryContainers(AUXILIARY_PREVIEW_CONTAINER_ID);
+
+					// Show auxiliary bar if hidden
+					if (!this.layoutService.isVisible(Parts.AUXILIARYBAR_PART)) {
+						this.layoutService.setPartHidden(false, Parts.AUXILIARYBAR_PART);
+					}
+
+					// Open the auxiliary preview container
+					await this.viewsService.openViewContainer(AUXILIARY_PREVIEW_CONTAINER_ID, true);
+
+					// Get the auxiliary preview view and show the preview
+					const viewPaneContainer = this.paneCompositeService.getActivePaneComposite(ViewContainerLocation.AuxiliaryBar);
+					if (viewPaneContainer) {
+						const auxiliaryPreviewView = viewPaneContainer.openView(AUXILIARY_PREVIEW_VIEW_ID, true) as any;
+						if (auxiliaryPreviewView && typeof auxiliaryPreviewView.showPreview === 'function') {
+							await auxiliaryPreviewView.showPreview(previewNumber);
+						}
+					}
+
+					// Resize auxiliary bar to approximately 50% width
+					// Small delay to let the auxiliary bar fully open and stabilize
+					setTimeout(() => {
+						const mainContainerWidth = this.layoutService.mainContainerDimension.width;
+						const targetWidth = Math.floor(mainContainerWidth * 0.5);
+
+						// Expand the auxiliary bar. resizePart takes a delta (change amount)
+						// Assuming default width is ~300px, we expand by the difference to reach 50%
+						const expansionAmount = targetWidth - 300;
+						if (expansionAmount > 0) {
+							this.layoutService.resizePart(Parts.AUXILIARYBAR_PART, expansionAmount, 0);
+						}
+					}, 150);
+
 				}
 			}
 		});
@@ -250,7 +295,26 @@ export class EditorTitleControl extends Themable {
 		return modeSwitcherContainer;
 	}
 
-	private updateModeSwitcher(): void {
+	private async closeAuxiliaryPreview(): Promise<void> {
+		const { AUXILIARY_PREVIEW_CONTAINER_ID } = await import('../../../contrib/preview/browser/previewConstants.js');
+
+		// Check if auxiliary preview is open
+		if (this.viewsService.isViewContainerVisible(AUXILIARY_PREVIEW_CONTAINER_ID)) {
+			await this.viewsService.closeViewContainer(AUXILIARY_PREVIEW_CONTAINER_ID);
+		}
+	}
+
+	private async closeOtherAuxiliaryContainers(keepContainerId: string): Promise<void> {
+		// Get all visible containers in the auxiliary bar
+		const activeComposite = this.paneCompositeService.getActivePaneComposite(ViewContainerLocation.AuxiliaryBar);
+
+		if (activeComposite && activeComposite.getId() !== keepContainerId) {
+			// Close the currently active container if it's not the one we want to keep
+			await this.viewsService.closeViewContainer(activeComposite.getId());
+		}
+	}
+
+	private async updateModeSwitcher(): Promise<void> {
 		if (!this.modeSwitcherSelect) {
 			return;
 		}
@@ -260,13 +324,21 @@ export class EditorTitleControl extends Themable {
 			return;
 		}
 
-		// Update dropdown based on current editor type
+		// Check if auxiliary preview is currently visible
+		const { AUXILIARY_PREVIEW_CONTAINER_ID } = await import('../../../contrib/preview/browser/previewConstants.js');
+		const isAuxiliaryPreviewVisible = this.viewsService.isViewContainerVisible(AUXILIARY_PREVIEW_CONTAINER_ID);
+
+		// Update dropdown based on current editor type and auxiliary preview state
 		if (activeEditor.constructor.name === 'PreviewEditorInput') {
 			this.modeSwitcherSelect.value = 'preview';
 		} else if (activeEditor.resource?.fsPath?.includes('.preview-samples/preview')) {
-			this.modeSwitcherSelect.value = 'code';
+			// If code editor is open and auxiliary preview is visible, it's split mode
+			if (isAuxiliaryPreviewVisible) {
+				this.modeSwitcherSelect.value = 'split';
+			} else {
+				this.modeSwitcherSelect.value = 'code';
+			}
 		}
-		// Note: split mode is set by user action, not auto-detected
 	}
 
 	openEditor(editor: EditorInput, options?: IInternalEditorOpenOptions): void {
@@ -287,7 +359,7 @@ export class EditorTitleControl extends Themable {
 		} else {
 			this.breadcrumbsControl?.revealLast();
 		}
-		
+
 		// Update mode switcher dropdown to reflect current editor
 		this.updateModeSwitcher();
 	}

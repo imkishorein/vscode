@@ -49,9 +49,27 @@ export class AuxiliaryBarPart extends AbstractPaneCompositePart {
 
 	// Use the side bar dimensions
 	override readonly minimumWidth: number = 170;
-	override readonly maximumWidth: number = Number.POSITIVE_INFINITY;
 	override readonly minimumHeight: number = 0;
 	override readonly maximumHeight: number = Number.POSITIVE_INFINITY;
+	
+	// Override maximumWidth to return a calculated value based on available space
+	override get maximumWidth(): number {
+		// When maximized, allow auxiliary bar to take full width
+		if (this.layoutService.isAuxiliaryBarMaximized()) {
+			return Number.POSITIVE_INFINITY;
+		}
+		
+		// For normal mode (preview panel), limit to 50% of available editor area
+		// This ensures proper 50-50 split with the code editor
+		const containerWidth = this.layoutService.mainContainerDimension.width;
+		const sidebarVisible = this.layoutService.isVisible(Parts.SIDEBAR_PART);
+		const sidebarWidth = sidebarVisible ? this.layoutService.getSize(Parts.SIDEBAR_PART).width : 0;
+		const availableEditorWidth = containerWidth - sidebarWidth;
+		
+		// Return 50% of available editor area as maximum, with a reasonable upper bound
+		// This prevents the auxiliary bar from taking more than half the editor space
+		return Math.min(Math.floor(availableEditorWidth * 0.5), 2000);
+	}
 
 	get preferredHeight(): number | undefined {
 		// Don't worry about titlebar or statusbar visibility

@@ -120,7 +120,7 @@
 	height: 100%;
 }
 
-.mode-dropdown-select {
+.view-mode-dropdown-select {
 	padding: 4px 8px;
 	min-height: 24px;
 	background-color: var(--vscode-dropdown-background);
@@ -144,12 +144,12 @@
 	box-sizing: border-box;
 }
 
-.mode-dropdown-select:hover {
+.view-mode-dropdown-select:hover {
 	background-color: var(--vscode-dropdown-background);
 	border-color: var(--vscode-focusBorder);
 }
 
-.mode-dropdown-select:focus {
+.view-mode-dropdown-select:focus {
 	outline: 1px solid var(--vscode-focusBorder);
 	outline-offset: -1px;
 	border-color: var(--vscode-focusBorder);

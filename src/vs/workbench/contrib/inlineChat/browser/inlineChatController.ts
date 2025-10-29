@@ -47,7 +47,7 @@ import { ISharedWebContentExtractorService } from '../../../../platform/webConte
 import { IEditorService, SIDE_GROUP } from '../../../services/editor/common/editorService.js';
 import { IWorkbenchLayoutService } from '../../../services/layout/browser/layoutService.js';
 import { IViewsService } from '../../../services/views/common/viewsService.js';
-import { showChatView } from '../../chat/browser/chat.js';
+import { showChatView } from '../../chat/browser/chatViewHelpers.js';
 import { IChatAttachmentResolveService } from '../../chat/browser/chatAttachmentResolveService.js';
 import { IChatWidgetLocationOptions } from '../../chat/browser/chatWidget.js';
 import { ChatContextKeys } from '../../chat/common/chatContextKeys.js';

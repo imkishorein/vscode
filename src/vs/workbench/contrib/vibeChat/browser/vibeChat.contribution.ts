@@ -9,7 +9,7 @@ import { InstantiationType, registerSingleton } from '../../../../platform/insta
 import { Registry } from '../../../../platform/registry/common/platform.js';
 import { EditorPaneDescriptor, IEditorPaneRegistry } from '../../../browser/editor.js';
 import { ViewPaneContainer } from '../../../browser/parts/views/viewPaneContainer.js';
-import { IViewContainersRegistry, IViewsRegistry, Extensions as ViewContainerExtensions, ViewContainerLocation } from '../../../common/views.js';
+import { IViewContainersRegistry, IViewsRegistry, Extensions as ViewContainerExtensions, ViewContainerLocation, IViewDescriptorService } from '../../../common/views.js';
 import { VIBE_CHAT_VIEW_ID, IVibeChatService } from '../common/vibeChat.js';
 import { VibeChatViewPane } from './vibeChatViewPane.js';
 import { VibeChatService } from './vibeChatService.js';
@@ -23,10 +23,12 @@ import { Categories } from '../../../../platform/action/common/actionCommonCateg
 import { KeyCode, KeyMod } from '../../../../base/common/keyCodes.js';
 import { KeybindingWeight } from '../../../../platform/keybinding/common/keybindingsRegistry.js';
 import { EditorExtensions } from '../../../common/editor.js';
+import { IPaneCompositePartService } from '../../../services/panecomposite/browser/panecomposite.js';
 
 // Register icon for the activity bar
 const vibeChatIcon = registerIcon('vibe-chat-view-icon', Codicon.commentDiscussion, localize('vibeChatViewIcon', 'View icon of the Vibe Chat view.'));
 
+// COMMENTED OUT: Chat (Build with Agents) - Replaced with Preview in auxiliary panel
 // Register the view container in the sidebar (activity bar)
 const VIEW_CONTAINER = Registry.as<IViewContainersRegistry>(ViewContainerExtensions.ViewContainersRegistry).registerViewContainer({
 	id: VIBE_CHAT_VIEW_ID,
@@ -36,8 +38,9 @@ const VIEW_CONTAINER = Registry.as<IViewContainersRegistry>(ViewContainerExtensi
 	ctorDescriptor: new SyncDescriptor(ViewPaneContainer, [VIBE_CHAT_VIEW_ID, { mergeViewWithContainerWhenSingleView: true }]),
 	storageId: VIBE_CHAT_VIEW_ID,
 	hideIfEmpty: false,
-}, ViewContainerLocation.Sidebar);
+}, ViewContainerLocation.AuxiliaryBar); // CHANGED: Moved to AuxiliaryBar so it doesn't interfere with preview list
 
+// COMMENTED OUT: Chat view registration - Using auxiliary panel for preview instead
 // Register the view itself
 const viewsRegistry = Registry.as<IViewsRegistry>(ViewContainerExtensions.ViewsRegistry);
 viewsRegistry.registerViews([{
@@ -80,6 +83,25 @@ class OpenVibeChatAction extends Action2 {
 
 	async run(accessor: ServicesAccessor): Promise<void> {
 		const viewsService = accessor.get(IViewsService);
+		const viewDescriptorService = accessor.get(IViewDescriptorService);
+		const paneCompositeService = accessor.get(IPaneCompositePartService);
+
+		// Get the view container for Vibe Chat
+		const viewContainer = viewDescriptorService.getViewContainerByViewId(VIBE_CHAT_VIEW_ID);
+		if (!viewContainer) {
+			return;
+		}
+
+		// Check if Vibe Chat is in the auxiliary bar
+		const location = viewDescriptorService.getViewContainerLocation(viewContainer);
+		if (location === ViewContainerLocation.AuxiliaryBar) {
+			// Close other containers in auxiliary bar before opening Vibe Chat
+			const activeComposite = paneCompositeService.getActivePaneComposite(ViewContainerLocation.AuxiliaryBar);
+			if (activeComposite && activeComposite.getId() !== viewContainer.id) {
+				await viewsService.closeViewContainer(activeComposite.getId());
+			}
+		}
+
 		await viewsService.openView(VIBE_CHAT_VIEW_ID, true);
 	}
 }

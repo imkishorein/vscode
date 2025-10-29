@@ -3,7 +3,8 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { ChatViewId, IChatWidget, showChatView } from '../chat.js';
+import { ChatViewId, IChatWidget } from '../chat.js';
+import { showChatView } from '../chatViewHelpers.js';
 import { ACTION_ID_NEW_CHAT, CHAT_CATEGORY, CHAT_CONFIG_MENU_ID } from '../actions/chatActions.js';
 import { URI } from '../../../../../base/common/uri.js';
 import { OS } from '../../../../../base/common/platform.js';
