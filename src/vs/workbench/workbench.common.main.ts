@@ -229,6 +229,9 @@ import './contrib/files/browser/files.contribution.js';
 // Preview
 import './contrib/preview/browser/preview.contribution.js';
 
+// Vibe Chat
+import './contrib/vibeChat/browser/vibeChat.contribution.js';
+
 // Bulk Edit
 import './contrib/bulkEdit/browser/bulkEditService.js';
 import './contrib/bulkEdit/browser/preview/bulkEdit.contribution.js';

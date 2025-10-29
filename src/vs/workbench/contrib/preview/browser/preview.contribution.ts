@@ -21,6 +21,7 @@ import { PreviewView } from './previewView.js';
 import { PreviewEditor, PreviewEditorInput } from './previewEditor.js';
 import { EditorExtensions } from '../../../common/editor.js';
 import { EditorPaneDescriptor, IEditorPaneRegistry } from '../../../browser/editor.js';
+import './previewActions.contribution.js';
 
 // Register icon
 const previewViewIcon = registerIcon('preview-view-icon', Codicon.play, localize('previewViewIcon', 'View icon of the preview view.'));
