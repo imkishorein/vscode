@@ -23,7 +23,7 @@ import { AuxiliaryPreviewView } from './auxiliaryPreviewView.js';
 import { PreviewView } from './previewView.js';
 import { PreviewEditor, PreviewEditorInput } from './previewEditor.js';
 import './previewActions.contribution.js';
-import './previewPrimarySidebarToggle.js';
+import './previewDevtoolsAction.js';
 import './viewModeDropdownControl.js';
 import { IViewModeManager, ViewModeManager } from './viewModeManager.js';
 import { InstantiationType, registerSingleton } from '../../../../platform/instantiation/common/extensions.js';
