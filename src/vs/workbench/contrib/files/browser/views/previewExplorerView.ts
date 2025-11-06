@@ -3,93 +3,72 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-/**
- * PreviewExplorerView - Preview accordion in File Explorer sidebar
- * 
- * Naming Convention:
- * - Component: PreviewExplorerView (File Explorer accordion, 2nd position)
- * - Class: PreviewExplorerView
- * - View ID: workbench.explorer.previewView
- * - Trigger: Click preview items in File Explorer accordion
- * - Location: File Explorer sidebar, 2nd position (between Folders and Outline)
- * - Behavior: Shows collapsible sections with preview items
- */
-
-import * as nls from '../../../../../nls.js';
-import { ViewPane } from '../../../../browser/parts/views/viewPane.js';
+import { localize2 } from '../../../../../nls.js';
 import { IViewletViewOptions } from '../../../../browser/parts/views/viewsViewlet.js';
 import { IInstantiationService } from '../../../../../platform/instantiation/common/instantiation.js';
-import { IEditorService } from '../../../../services/editor/common/editorService.js';
-import * as dom from '../../../../../base/browser/dom.js';
-import { IContextMenuService } from '../../../../../platform/contextview/browser/contextView.js';
-import { IContextKeyService } from '../../../../../platform/contextkey/common/contextkey.js';
 import { IThemeService } from '../../../../../platform/theme/common/themeService.js';
 import { IKeybindingService } from '../../../../../platform/keybinding/common/keybinding.js';
+import { IContextMenuService } from '../../../../../platform/contextview/browser/contextView.js';
 import { IConfigurationService } from '../../../../../platform/configuration/common/configuration.js';
+import { ViewPane } from '../../../../browser/parts/views/viewPane.js';
 import { IViewDescriptorService } from '../../../../common/views.js';
 import { IOpenerService } from '../../../../../platform/opener/common/opener.js';
+import { IEditorService } from '../../../../services/editor/common/editorService.js';
+import { PreviewEditorInput } from '../../../preview/browser/previewEditor.js';
+import { IContextKeyService } from '../../../../../platform/contextkey/common/contextkey.js';
 import { IHoverService } from '../../../../../platform/hover/browser/hover.js';
-import { ILocalizedString } from '../../../../../platform/action/common/action.js';
-
-const $ = dom.$;
 
 interface PreviewSection {
 	id: string;
 	label: string;
-	items: PreviewItem[];
+	items: { id: string; label: string }[];
 	expanded: boolean;
-}
-
-interface PreviewItem {
-	id: string;
-	label: string;
-	previewNumber: string;
 }
 
 export class PreviewExplorerView extends ViewPane {
 
 	static readonly ID = 'workbench.explorer.previewView';
-	static readonly NAME: ILocalizedString = nls.localize2('preview', 'Preview');
+	static readonly NAME = localize2('preview', "Preview");
 
 	private sections: PreviewSection[] = [
 		{
 			id: 'react-app',
 			label: 'React App',
-			expanded: true,
 			items: [
-				{ id: 'preview1', label: 'Preview 1', previewNumber: '1' },
-				{ id: 'preview2', label: 'Preview 2', previewNumber: '2' }
-			]
+				{ id: '1', label: 'Preview 1' },
+				{ id: '2', label: 'Preview 2' }
+			],
+			expanded: true
 		},
 		{
 			id: 'lwc-components',
 			label: 'LWC Components',
-			expanded: true,
 			items: [
-				{ id: 'preview3', label: 'Preview 3', previewNumber: '3' },
-				{ id: 'preview4', label: 'Preview 4', previewNumber: '4' }
-			]
+				{ id: '3', label: 'Preview 3' },
+				{ id: '4', label: 'Preview 4' }
+			],
+			expanded: true
 		},
 		{
 			id: 'data-entity-visualiser',
 			label: 'Data Entity Visualiser',
-			expanded: true,
 			items: [
-				{ id: 'preview5', label: 'Preview 5', previewNumber: '5' }
-			]
+				{ id: '5', label: 'Preview 5' }
+			],
+			expanded: true
 		}
 	];
 
 	constructor(
 		options: IViewletViewOptions,
+		@IInstantiationService instantiationService: IInstantiationService,
+		@IViewDescriptorService viewDescriptorService: IViewDescriptorService,
+		@IThemeService themeService: IThemeService,
 		@IKeybindingService keybindingService: IKeybindingService,
 		@IContextMenuService contextMenuService: IContextMenuService,
 		@IConfigurationService configurationService: IConfigurationService,
 		@IContextKeyService contextKeyService: IContextKeyService,
-		@IViewDescriptorService viewDescriptorService: IViewDescriptorService,
-		@IInstantiationService instantiationService: IInstantiationService,
 		@IOpenerService openerService: IOpenerService,
-		@IThemeService themeService: IThemeService,
 		@IHoverService hoverService: IHoverService,
 		@IEditorService private readonly editorService: IEditorService
 	) {
@@ -97,92 +76,99 @@ export class PreviewExplorerView extends ViewPane {
 	}
 
 	protected override renderBody(container: HTMLElement): void {
-		container.classList.add('preview-explorer-view');
-		const sectionsContainer = dom.append(container, $('div.preview-explorer-sections-container'));
+		super.renderBody(container);
 
-		for (const section of this.sections) {
+		const sectionsContainer = document.createElement('div');
+		sectionsContainer.className = 'preview-explorer-sections-container';
+
+		this.sections.forEach(section => {
 			this.renderSection(sectionsContainer, section);
-		}
+		});
+
+		container.appendChild(sectionsContainer);
 	}
 
 	private renderSection(container: HTMLElement, section: PreviewSection): void {
-		const sectionElement = dom.append(container, $('div.preview-explorer-section'));
+		const sectionElement = document.createElement('div');
+		sectionElement.className = 'preview-explorer-section';
 
 		// Section header
-		const header = dom.append(sectionElement, $('div.preview-explorer-section-header'));
+		const header = document.createElement('div');
+		header.className = 'preview-explorer-section-header';
 		header.setAttribute('role', 'button');
 		header.setAttribute('tabindex', '0');
 		header.setAttribute('aria-expanded', section.expanded.toString());
 
-		// Chevron
-		const chevron = dom.append(header, $('span.preview-explorer-section-chevron'));
-		chevron.textContent = section.expanded ? '▼' : '▶';
+		const chevron = document.createElement('span');
+		chevron.className = 'preview-explorer-section-chevron codicon codicon-chevron-down';
+		if (!section.expanded) {
+			chevron.classList.add('collapsed');
+		}
 
-		// Label
-		const label = dom.append(header, $('span.preview-explorer-section-label'));
+		const label = document.createElement('span');
+		label.className = 'preview-explorer-section-label';
 		label.textContent = section.label;
 
-		// Content
-		const content = dom.append(sectionElement, $('div.preview-explorer-section-content'));
-		if (!section.expanded) {
-			content.style.display = 'none';
-		}
+		header.appendChild(chevron);
+		header.appendChild(label);
 
-		// Render items
-		for (const item of section.items) {
-			this.renderItem(content, item);
-		}
-
-		// Toggle on click
+		// Toggle section on click
 		header.addEventListener('click', () => {
 			section.expanded = !section.expanded;
-			header.setAttribute('aria-expanded', section.expanded.toString());
-			chevron.textContent = section.expanded ? '▼' : '▶';
+			chevron.classList.toggle('collapsed');
 			content.style.display = section.expanded ? 'block' : 'none';
+			header.setAttribute('aria-expanded', section.expanded.toString());
 		});
 
-		// Toggle on keyboard
-		header.addEventListener('keydown', (e: KeyboardEvent) => {
+		// Keyboard accessibility
+		header.addEventListener('keydown', (e) => {
 			if (e.key === 'Enter' || e.key === ' ') {
 				e.preventDefault();
-				section.expanded = !section.expanded;
-				header.setAttribute('aria-expanded', section.expanded.toString());
-				chevron.textContent = section.expanded ? '▼' : '▶';
-				content.style.display = section.expanded ? 'block' : 'none';
+				header.click();
 			}
 		});
+
+		// Section content
+		const content = document.createElement('div');
+		content.className = 'preview-explorer-section-content';
+		content.style.display = section.expanded ? 'block' : 'none';
+
+		section.items.forEach(item => {
+			const itemElement = document.createElement('div');
+			itemElement.className = 'preview-explorer-item';
+			itemElement.setAttribute('role', 'button');
+			itemElement.setAttribute('tabindex', '0');
+
+			const itemLabel = document.createElement('span');
+			itemLabel.className = 'preview-explorer-item-label';
+			itemLabel.textContent = item.label;
+
+			itemElement.appendChild(itemLabel);
+
+			// Open preview on click
+			itemElement.addEventListener('click', () => {
+				this.openPreview(item.id);
+			});
+
+			// Keyboard accessibility
+			itemElement.addEventListener('keydown', (e) => {
+				if (e.key === 'Enter' || e.key === ' ') {
+					e.preventDefault();
+					this.openPreview(item.id);
+				}
+			});
+
+			content.appendChild(itemElement);
+		});
+
+		sectionElement.appendChild(header);
+		sectionElement.appendChild(content);
+		container.appendChild(sectionElement);
 	}
 
-	private renderItem(container: HTMLElement, item: PreviewItem): void {
-		const itemElement = dom.append(container, $('div.preview-explorer-item'));
-		itemElement.setAttribute('role', 'button');
-		itemElement.setAttribute('tabindex', '0');
-
-		const label = dom.append(itemElement, $('span.preview-explorer-item-label'));
-		label.textContent = item.label;
-
-		// Open preview on click
-		itemElement.addEventListener('click', () => {
-			this.openPreview(item.previewNumber);
-		});
-
-		// Open preview on Enter/Space
-		itemElement.addEventListener('keydown', (e: KeyboardEvent) => {
-			if (e.key === 'Enter' || e.key === ' ') {
-				e.preventDefault();
-				this.openPreview(item.previewNumber);
-			}
-		});
-	}
-
-	private openPreview(previewNumber: string): void {
-		// Import PreviewEditorInput dynamically to avoid circular dependencies
-		import('../../../preview/browser/previewEditor.js').then(module => {
-			const PreviewEditorInput = module.PreviewEditorInput;
-			const previewTitle = `Preview ${previewNumber}`;
-
-			const input = new PreviewEditorInput(previewTitle);
-			this.editorService.openEditor(input, { pinned: true });
-		});
+	private openPreview(previewId: string): void {
+		const previewTitle = `Preview ${previewId}`;
+		const previewInput = new PreviewEditorInput(previewTitle);
+		this.editorService.openEditor(previewInput, { pinned: true });
 	}
 }

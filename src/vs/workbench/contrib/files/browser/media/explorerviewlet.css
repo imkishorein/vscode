@@ -120,6 +120,17 @@
 	flex-direction: column;
 }
 
+/* Green dot status indicator in Preview header */
+.preview-status-indicator {
+	display: inline-block;
+	width: 8px;
+	height: 8px;
+	border-radius: 50%;
+	background-color: #4caf50; /* Green color */
+	margin: 0 6px 0 4px;
+	flex-shrink: 0;
+}
+
 .preview-explorer-sections-container {
 	flex: 1;
 	overflow-y: auto;

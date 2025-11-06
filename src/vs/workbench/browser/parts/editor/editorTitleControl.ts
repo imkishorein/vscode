@@ -24,6 +24,7 @@ import { IViewsService } from '../../../services/views/common/viewsService.js';
 import { IWorkbenchLayoutService, Parts } from '../../../services/layout/browser/layoutService.js';
 import { IPaneCompositePartService } from '../../../services/panecomposite/browser/panecomposite.js';
 import { ViewContainerLocation } from '../../../common/views.js';
+import { GroupsOrder } from '../../../services/editor/common/editorGroupsService.js';
 
 export interface IEditorTitleControlDimensions {
 
@@ -124,6 +125,7 @@ export class EditorTitleControl extends Themable {
 		// Mode switcher container
 		const modeSwitcherContainer = $('.preview-mode-switcher-bar');
 		this.parent.appendChild(modeSwitcherContainer);
+		this.modeSwitcherContainer = modeSwitcherContainer;
 
 		// Create dropdown container
 		const dropdownContainer = $('.preview-mode-switcher-dropdown');
@@ -198,9 +200,9 @@ export class EditorTitleControl extends Themable {
 				}
 			} else if (target.value === 'code' && isPreviewEditor) {
 				// Switch from preview to code mode - replace current editor in same tab
-				// eslint-disable-next-line @typescript-eslint/no-explicit-any
-				const previewInput = activeEditor as any;
-				const match = previewInput.previewTitle.match(/\d+/);
+				const previewInput = activeEditor;
+				const previewTitle = 'getName' in previewInput ? (previewInput as { getName(): string }).getName() : '';
+				const match = previewTitle.match(/\d+/);
 				if (match) {
 					const previewNumber = match[0];
 					const htmlFilePath = `/Users/kishore.v/Dev/vscode/.preview-samples/preview${previewNumber}.html`;
@@ -225,9 +227,9 @@ export class EditorTitleControl extends Themable {
 						previewNumber = match[1];
 					}
 				} else if (isPreviewEditor) {
-					// eslint-disable-next-line @typescript-eslint/no-explicit-any
-					const previewInput = activeEditor as any;
-					const match = previewInput.previewTitle.match(/\d+/);
+					const previewInput = activeEditor;
+					const previewTitle = 'getName' in previewInput ? (previewInput as { getName(): string }).getName() : '';
+					const match = previewTitle.match(/\d+/);
 					if (match) {
 						previewNumber = match[0];
 					}
@@ -263,9 +265,9 @@ export class EditorTitleControl extends Themable {
 					// Get the auxiliary preview view and show the preview
 					const viewPaneContainer = this.paneCompositeService.getActivePaneComposite(ViewContainerLocation.AuxiliaryBar);
 					if (viewPaneContainer) {
-						const auxiliaryPreviewView = viewPaneContainer.openView(AUXILIARY_PREVIEW_VIEW_ID, true) as any;
-						if (auxiliaryPreviewView && typeof auxiliaryPreviewView.showPreview === 'function') {
-							await auxiliaryPreviewView.showPreview(previewNumber);
+						const auxiliaryPreviewView = viewPaneContainer.openView(AUXILIARY_PREVIEW_VIEW_ID, true);
+						if (auxiliaryPreviewView && 'showPreview' in auxiliaryPreviewView && typeof (auxiliaryPreviewView as { showPreview(n: string): Promise<void> }).showPreview === 'function') {
+							await (auxiliaryPreviewView as { showPreview(n: string): Promise<void> }).showPreview(previewNumber);
 						}
 					}
 
@@ -292,6 +294,8 @@ export class EditorTitleControl extends Themable {
 		// Store reference to select element
 		this.modeSwitcherSelect = select;
 
+		this.updateModeSwitcherVisibility();
+
 		return modeSwitcherContainer;
 	}
 
@@ -302,6 +306,27 @@ export class EditorTitleControl extends Themable {
 		if (this.viewsService.isViewContainerVisible(AUXILIARY_PREVIEW_CONTAINER_ID)) {
 			await this.viewsService.closeViewContainer(AUXILIARY_PREVIEW_CONTAINER_ID);
 		}
+	}
+
+	private updateModeSwitcherVisibility(): void {
+		if (!this.modeSwitcherContainer) {
+			return;
+		}
+
+		const activeEditor = this.groupView.activeEditor;
+		const shouldHide = !!activeEditor && activeEditor.typeId === 'workbench.input.htmlCustomPreview';
+		const currentlyHidden = this.modeSwitcherContainer.style.display === 'none';
+		if (shouldHide && !currentlyHidden) {
+			this.modeSwitcherContainer.style.display = 'none';
+			this.groupView.relayout();
+		} else if (!shouldHide && currentlyHidden) {
+			this.modeSwitcherContainer.style.display = '';
+			this.groupView.relayout();
+		}
+	}
+
+	private isModeSwitcherVisible(): boolean {
+		return !!(this.modeSwitcherContainer && this.modeSwitcherContainer.style.display !== 'none');
 	}
 
 	private async closeOtherAuxiliaryContainers(keepContainerId: string): Promise<void> {
@@ -321,19 +346,58 @@ export class EditorTitleControl extends Themable {
 
 		const activeEditor = this.groupView.activeEditor;
 		if (!activeEditor) {
+			this.updateModeSwitcherVisibility();
 			return;
 		}
+
+		this.updateModeSwitcherVisibility();
+
+		const activeResource = activeEditor.resource;
+		const activeResourcePath = activeResource?.fsPath;
 
 		// Check if auxiliary preview is currently visible
 		const { AUXILIARY_PREVIEW_CONTAINER_ID } = await import('../../../contrib/preview/browser/previewConstants.js');
 		const isAuxiliaryPreviewVisible = this.viewsService.isViewContainerVisible(AUXILIARY_PREVIEW_CONTAINER_ID);
 
-		// Update dropdown based on current editor type and auxiliary preview state
+		// Detect split layout created by htmlSplitPreviewAction (code + preview in editor area)
+		let hasMatchingCustomPreview = false;
+		let hasMatchingHtmlEditor = false;
+		if (activeResourcePath) {
+			const groups = this.groupsView.getGroups(GroupsOrder.GRID_APPEARANCE);
+			for (const group of groups) {
+				if (group.id === this.groupView.id) {
+					continue;
+				}
+
+				const groupActiveEditor = group.activeEditor;
+				if (!groupActiveEditor) {
+					continue;
+				}
+
+				const groupResourcePath = groupActiveEditor.resource?.fsPath;
+				if (!groupResourcePath || groupResourcePath !== activeResourcePath) {
+					continue;
+				}
+
+				if (groupActiveEditor.typeId === 'workbench.input.htmlCustomPreview') {
+					hasMatchingCustomPreview = true;
+				} else {
+					hasMatchingHtmlEditor = true;
+				}
+			}
+		}
+
+		// Update dropdown based on current editor type and detected layout
 		if (activeEditor.constructor.name === 'PreviewEditorInput') {
 			this.modeSwitcherSelect.value = 'preview';
-		} else if (activeEditor.resource?.fsPath?.includes('.preview-samples/preview')) {
-			// If code editor is open and auxiliary preview is visible, it's split mode
-			if (isAuxiliaryPreviewVisible) {
+		} else if (activeEditor.typeId === 'workbench.input.htmlCustomPreview') {
+			if (hasMatchingHtmlEditor) {
+				this.modeSwitcherSelect.value = 'split';
+			} else {
+				this.modeSwitcherSelect.value = 'preview';
+			}
+		} else if (activeResourcePath?.includes('.preview-samples/preview')) {
+			if (isAuxiliaryPreviewVisible || hasMatchingCustomPreview) {
 				this.modeSwitcherSelect.value = 'split';
 			} else {
 				this.modeSwitcherSelect.value = 'code';
@@ -384,6 +448,8 @@ export class EditorTitleControl extends Themable {
 		if (!this.groupView.activeEditor) {
 			this.breadcrumbsControl?.update();
 		}
+
+		this.updateModeSwitcherVisibility();
 	}
 
 	moveEditor(editor: EditorInput, fromIndex: number, targetIndex: number, stickyStateChange: boolean): void {
@@ -454,7 +520,7 @@ export class EditorTitleControl extends Themable {
 		}
 
 		// Layout mode switcher bar if visible
-		const modeSwitcherHeight = this.modeSwitcherContainer ? EditorTitleControl.MODE_SWITCHER_HEIGHT : 0;
+		const modeSwitcherHeight = this.isModeSwitcherVisible() ? EditorTitleControl.MODE_SWITCHER_HEIGHT : 0;
 
 		return new Dimension(
 			dimensions.container.width,
@@ -465,7 +531,7 @@ export class EditorTitleControl extends Themable {
 	getHeight(): IEditorGroupTitleHeight {
 		const tabsControlHeight = this.editorTabsControl.getHeight();
 		const breadcrumbsControlHeight = this.breadcrumbsControl?.isHidden() === false ? BreadcrumbsControl.HEIGHT : 0;
-		const modeSwitcherHeight = this.modeSwitcherContainer ? EditorTitleControl.MODE_SWITCHER_HEIGHT : 0;
+		const modeSwitcherHeight = this.isModeSwitcherVisible() ? EditorTitleControl.MODE_SWITCHER_HEIGHT : 0;
 
 		return {
 			total: tabsControlHeight + breadcrumbsControlHeight + modeSwitcherHeight,

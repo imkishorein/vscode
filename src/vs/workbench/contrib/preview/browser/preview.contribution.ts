@@ -25,8 +25,21 @@ import { PreviewEditor, PreviewEditorInput } from './previewEditor.js';
 import './previewActions.contribution.js';
 import './previewDevtoolsAction.js';
 import './viewModeDropdownControl.js';
+// import './previewEditorTitleDropdown.js'; // Original version - disabled
+// import './previewModeQuickPick.js'; // Quick pick version - disabled
+
+// Two dropdown versions for testing
+import './previewEditorTitleDropdownIconOnly.js'; // Version 1: Icon only
+import './previewEditorTitleDropdownLabelChevron.js'; // Version 2: Label + Chevron
+
+import './htmlCustomPreviewActions.js';
+import './htmlCustomPreviewDevtoolsAction.js';
+import './htmlSplitPreviewAction.js';
 import { IViewModeManager, ViewModeManager } from './viewModeManager.js';
+import { IPreviewGroupManager, PreviewGroupManager } from './previewGroupManager.js';
 import { InstantiationType, registerSingleton } from '../../../../platform/instantiation/common/extensions.js';
+import { HtmlCustomPreviewEditorInput } from './htmlCustomPreviewEditorProvider.js';
+import { HtmlCustomPreviewEditor } from './htmlCustomPreviewEditor.js';
 
 // Register icon
 const previewViewIcon = registerIcon('preview-view-icon', Codicon.play, localize('previewViewIcon', 'View icon of the preview view.'));
@@ -99,3 +112,16 @@ Registry.as<IEditorPaneRegistry>(EditorExtensions.EditorPane).registerEditorPane
 
 // Register ViewModeManager service
 registerSingleton(IViewModeManager, ViewModeManager, InstantiationType.Eager);
+
+// Register PreviewGroupManager service
+registerSingleton(IPreviewGroupManager, PreviewGroupManager, InstantiationType.Eager);
+
+// Register HtmlCustomPreviewEditor as an editor pane
+Registry.as<IEditorPaneRegistry>(EditorExtensions.EditorPane).registerEditorPane(
+	EditorPaneDescriptor.create(
+		HtmlCustomPreviewEditor,
+		HtmlCustomPreviewEditor.ID,
+		localize('htmlCustomPreviewEditor', "HTML Custom Preview Editor")
+	),
+	[new SyncDescriptor(HtmlCustomPreviewEditorInput)]
+);
